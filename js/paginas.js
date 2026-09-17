@@ -1071,12 +1071,20 @@ function renderAbaMatriz(aba) {
       </div>
 
       <div class="card mb">
-        <h3>➕ Cadastrar material (link do Drive)</h3>
-        <p style="font-size:.88rem;color:var(--cinza-500)">Escolha para onde o material vai: <strong>Atividades</strong>, <strong>Jogos</strong> ou <strong>Simulados</strong>. Ele aparecerá na tela escolhida para os professores.</p>
+        <h3>➕ Cadastrar material (link do Drive ou arquivo PDF)</h3>
+        <p style="font-size:.88rem;color:var(--cinza-500)">Escolha para onde o material vai: <strong>Atividades</strong>, <strong>Jogos</strong> ou <strong>Simulados</strong>. Você pode colar um <strong>link</strong> (Drive) ou enviar um <strong>arquivo PDF</strong> do seu computador.</p>
         <div class="campo"><label>Título do material *</label>
           <input id="mat-titulo" placeholder="Ex.: Jogo de interpretação — Crônica"></div>
-        <div class="campo"><label>Link do material (Drive) *</label>
+        <div class="campo"><label>Tipo de material *</label>
+          <select id="mat-tipo">
+            <option value="link">🔗 Link (Drive / site)</option>
+            <option value="pdf">📄 Arquivo PDF (enviar do computador)</option>
+          </select></div>
+        <div class="campo" id="mat-campo-link"><label>Link do material (Drive) *</label>
           <input id="mat-link" placeholder="https://drive.google.com/..."></div>
+        <div class="campo" id="mat-campo-pdf" style="display:none"><label>Arquivo PDF *</label>
+          <input type="file" id="mat-arquivo" accept="application/pdf,.pdf">
+          <small style="color:var(--cinza-500);font-size:.8rem">Tamanho recomendado: até 20 MB. O arquivo fica salvo no navegador.</small></div>
         <div class="campo-linha">
           <div class="campo"><label>Onde exibir *</label>
             <select id="mat-categoria">
@@ -1092,15 +1100,19 @@ function renderAbaMatriz(aba) {
         <h3>📂 Materiais cadastrados (${mats.length})</h3>
         ${mats.length === 0 ? '<p style="font-size:.88rem;color:var(--cinza-500)">Nenhum material cadastrado ainda.</p>' : `
         <div class="tabela-wrap"><table class="tabela">
-          <thead><tr><th>Título</th><th>Onde exibe</th><th>Habilidade</th><th>Link</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Título</th><th>Onde exibe</th><th>Habilidade</th><th>Tipo</th><th>Abrir</th><th>Ações</th></tr></thead>
           <tbody>${mats.map(m => {
             const h = m.habilidadeId ? obterHabilidade(m.habilidadeId) : null;
             const cat = CATEGORIAS_MATERIAL.find(c => c.id === m.categoria) || CATEGORIAS_MATERIAL[0];
+            const ehPdf = m.tipo === 'pdf';
             return `<tr>
               <td><strong>${esc(m.titulo || '—')}</strong></td>
               <td><span class="badge badge-azul">${cat.icone} ${esc(cat.rotulo)}</span></td>
               <td>${h ? esc(h.codigo) : '—'}</td>
-              <td><a href="${esc(m.link)}" target="_blank" rel="noopener">🔗 Abrir</a></td>
+              <td>${ehPdf ? `<span class="badge badge-verde">📄 PDF</span><br><small style="color:var(--cinza-500)">${esc(m.arquivoNome || '')} ${m.arquivoTamanho ? '(' + formatarTamanho(m.arquivoTamanho) + ')' : ''}</small>` : '<span class="badge badge-cinza">🔗 Link</span>'}</td>
+              <td>${ehPdf
+                ? `<button class="btn btn-claro btn-pequeno" data-abrir-pdf="${m.id}">📄 Abrir PDF</button>`
+                : `<a href="${esc(m.link)}" target="_blank" rel="noopener">🔗 Abrir</a>`}</td>
               <td><button class="btn btn-perigo btn-pequeno" data-del-material="${m.id}">🗑️ Remover</button></td>
             </tr>`;
           }).join('')}</tbody>

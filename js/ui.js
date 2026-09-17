@@ -126,12 +126,15 @@ function secaoMateriaisCategoria(categoria, titulo) {
       <div class="grid-materiais">
         ${mats.map(m => {
           const h = m.habilidadeId && typeof obterHabilidade === 'function' ? obterHabilidade(m.habilidadeId) : null;
-          return `
-          <a class="material-item" href="${esc(m.link)}" target="_blank" rel="noopener">
-            <span class="codigo">${esc(m.titulo || 'Material')}</span>
+          const ehPdf = m.tipo === 'pdf';
+          const conteudo = `
+            <span class="codigo">${ehPdf ? '📄 ' : '🔗 '}${esc(m.titulo || 'Material')}</span>
             ${h ? `<span class="texto">${esc(h.codigo)} — ${esc(h.texto)}</span>` : ''}
-            <span class="abrir">📂 Abrir material</span>
-          </a>`;
+            ${ehPdf ? `<span class="texto">${esc(m.arquivoNome || 'arquivo.pdf')}${m.arquivoTamanho ? ' • ' + formatarTamanho(m.arquivoTamanho) : ''}</span>` : ''}
+            <span class="abrir">${ehPdf ? '📄 Abrir PDF' : '📂 Abrir material'}</span>`;
+          return ehPdf
+            ? `<a class="material-item" href="#" data-abrir-pdf="${m.id}">${conteudo}</a>`
+            : `<a class="material-item" href="${esc(m.link)}" target="_blank" rel="noopener">${conteudo}</a>`;
         }).join('')}
       </div>
     </div>`;

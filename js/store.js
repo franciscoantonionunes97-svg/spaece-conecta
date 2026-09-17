@@ -100,6 +100,18 @@ function carregar() {
         }
         if (mudouLink) salvar();
       }
+      // Migração: garantir campos de tipo/arquivo nos materiais já cadastrados
+      if (Array.isArray(DB.materiais)) {
+        let mudouMat = false;
+        for (const m of DB.materiais) {
+          if (m.tipo === undefined) { m.tipo = 'link'; mudouMat = true; }
+          if (m.arquivoId === undefined) { m.arquivoId = null; mudouMat = true; }
+          if (m.arquivoNome === undefined) { m.arquivoNome = ''; mudouMat = true; }
+          if (m.arquivoTipo === undefined) { m.arquivoTipo = ''; mudouMat = true; }
+          if (m.arquivoTamanho === undefined) { m.arquivoTamanho = 0; mudouMat = true; }
+        }
+        if (mudouMat) salvar();
+      }
     } else {
       DB = dbInicial();
       salvar();
@@ -246,8 +258,79 @@ function definirPastaMateriais(url) {
   return db.pastaMateriais;
 }
 
-/* ---------- Materiais (links do Drive) com categoria ----------
-   O administrador escolhe se o material vai para Atividades, Jogos ou Simulados. */
+/* ---------- Armazenamento de arquivos (PDF) via IndexedDB ----------
+   O localStorage não suporta arquivos grandes, então os PDFs enviados
+   pelo administrador são guardados no IndexedDB do navegador.
+   Cada arquivo é identificado por um id (ex.: 'file-xxxx'). */
+const IDB_NOME = 'spaece_conecta_arquivos';
+const IDB_STORE = 'arquivos';
+
+function _abrirIDB() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === 'undefined') { reject(new Error('IndexedDB indisponível')); return; }
+    const req = indexedDB.open(IDB_NOME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// Salva um arquivo (Blob/File) e retorna o id gerado.
+async function salvarArquivo(file) {
+  const id = uid('file');
+  const db = await _abrirIDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put({
+      id,
+      nome: file.name || 'arquivo.pdf',
+      tipo: file.type || 'application/pdf',
+      tamanho: file.size || 0,
+      blob: file,
+      data: agoraISO()
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+  return id;
+}
+
+// Recupera o registro completo do arquivo (com o Blob).
+async function obterArquivo(id) {
+  if (!id) return null;
+  const db = await _abrirIDB();
+  const reg = await new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
+  return reg;
+}
+
+// Remove o arquivo do IndexedDB.
+async function removerArquivo(id) {
+  if (!id) return;
+  try {
+    const db = await _abrirIDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (e) { /* silencioso */ }
+}
+
+/* ---------- Materiais (links do Drive OU arquivos PDF) com categoria ----------
+   O administrador escolhe se o material vai para Atividades, Jogos ou Simulados
+   e se é um LINK (Drive) ou um ARQUIVO PDF enviado do computador. */
 const CATEGORIAS_MATERIAL = [
   { id: 'atividades', rotulo: 'Atividades', icone: '📝' },
   { id: 'jogos', rotulo: 'Jogos', icone: '🎮' },
@@ -257,6 +340,13 @@ function rotuloCategoria(cat) {
   const c = CATEGORIAS_MATERIAL.find(x => x.id === cat);
   return c ? c.rotulo : 'Atividades';
 }
+// Formata tamanho de arquivo (bytes) para leitura humana.
+function formatarTamanho(bytes) {
+  const b = Number(bytes) || 0;
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / (1024 * 1024)).toFixed(1) + ' MB';
+}
 function listarMateriais(categoria) {
   const arr = getDB().materiais.slice();
   if (categoria) return arr.filter(m => m.categoria === categoria);
@@ -265,17 +355,23 @@ function listarMateriais(categoria) {
 function obterMaterial(id) { return getDB().materiais.find(m => m.id === id) || null; }
 function adicionarMaterial(dados) {
   const db = getDB();
+  const tipo = dados.tipo === 'pdf' ? 'pdf' : 'link';
   const m = {
     id: uid('mat'),
     titulo: (dados.titulo || '').trim(),
-    link: (dados.link || '').trim(),
+    tipo,                                   // 'link' | 'pdf'
+    link: tipo === 'link' ? (dados.link || '').trim() : '',
+    arquivoId: tipo === 'pdf' ? (dados.arquivoId || null) : null,
+    arquivoNome: tipo === 'pdf' ? (dados.arquivoNome || '') : '',
+    arquivoTipo: tipo === 'pdf' ? (dados.arquivoTipo || 'application/pdf') : '',
+    arquivoTamanho: tipo === 'pdf' ? (dados.arquivoTamanho || 0) : 0,
     categoria: dados.categoria || 'atividades',
     habilidadeId: dados.habilidadeId || null,
     data: agoraISO()
   };
   db.materiais.push(m);
   salvar();
-  registrarLog('Material cadastrado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
+  registrarLog('Material cadastrado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link || m.arquivoNome));
   return m;
 }
 function atualizarMaterial(id, dados) {
@@ -283,11 +379,16 @@ function atualizarMaterial(id, dados) {
   const m = db.materiais.find(x => x.id === id);
   if (!m) return null;
   if (dados.titulo !== undefined) m.titulo = (dados.titulo || '').trim();
-  if (dados.link !== undefined) m.link = (dados.link || '').trim();
   if (dados.categoria !== undefined) m.categoria = dados.categoria;
   if (dados.habilidadeId !== undefined) m.habilidadeId = dados.habilidadeId || null;
+  if (dados.tipo !== undefined) m.tipo = dados.tipo === 'pdf' ? 'pdf' : 'link';
+  if (dados.link !== undefined) m.link = (dados.link || '').trim();
+  if (dados.arquivoId !== undefined) m.arquivoId = dados.arquivoId || null;
+  if (dados.arquivoNome !== undefined) m.arquivoNome = dados.arquivoNome || '';
+  if (dados.arquivoTipo !== undefined) m.arquivoTipo = dados.arquivoTipo || '';
+  if (dados.arquivoTamanho !== undefined) m.arquivoTamanho = dados.arquivoTamanho || 0;
   salvar();
-  registrarLog('Material atualizado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
+  registrarLog('Material atualizado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link || m.arquivoNome));
   return m;
 }
 function removerMaterial(id) {
@@ -295,7 +396,9 @@ function removerMaterial(id) {
   const m = db.materiais.find(x => x.id === id);
   db.materiais = db.materiais.filter(x => x.id !== id);
   salvar();
-  if (m) registrarLog('Material removido', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
+  // Se for um PDF, remove também o arquivo do IndexedDB.
+  if (m && m.tipo === 'pdf' && m.arquivoId) removerArquivo(m.arquivoId);
+  if (m) registrarLog('Material removido', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link || m.arquivoNome));
 }
 
 /* Exclui a Matriz Oficial inteira, voltando ao estado inicial (vazia).

@@ -316,6 +316,17 @@ body {
 .material-item .codigo { font-weight: 800; color: var(--azul-800); font-size: .95rem; }
 .material-item .texto { font-size: .82rem; color: var(--cinza-700); }
 .material-item .abrir { font-size: .8rem; font-weight: 700; color: var(--verde-700); margin-top: 4px; }
+/* Upload de arquivo PDF */
+input[type="file"] {
+  width: 100%; padding: 10px 12px; border: 1.5px dashed var(--azul-300, #93b4e0);
+  border-radius: var(--raio-md); background: var(--azul-50); cursor: pointer; font-size: .88rem;
+}
+input[type="file"]:hover { border-color: var(--verde-500); background: #fff; }
+input[type="file"]::file-selector-button {
+  margin-right: 12px; padding: 8px 14px; border: none; border-radius: var(--raio-sm, 8px);
+  background: var(--azul-700, #1e3a8a); color: #fff; font-weight: 700; cursor: pointer;
+}
+input[type="file"]::file-selector-button:hover { background: var(--azul-800, #172554); }
 
 /* KPI cards */
 .grid-kpi { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
