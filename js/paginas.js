@@ -183,7 +183,14 @@ function abrirDetalheHabilidade(habId) {
    ATIVIDADES — Repositório
    ============================================================ */
 PAGINAS.atividades = function () {
-  if (!matrizDisponivel()) return `<div class="pagina-cabecalho"><h2>📝 Atividades</h2></div>${avisoMatrizIndisponivel()}`;
+  if (!matrizDisponivel()) return `
+    <div class="pagina-cabecalho flex-entre">
+      <div><h2>📝 Repositório de Atividades</h2><p>Atividades de Língua Portuguesa vinculadas às habilidades oficiais.</p></div>
+      <div class="flex-centro">${botaoPastaMateriais()}</div>
+    </div>
+    ${avisoMatrizIndisponivel()}
+    ${secaoMateriaisCategoria('atividades', '📂 Materiais de Atividades (Drive)')}
+    ${secaoMateriaisHabilidades('📂 Materiais de Atividades por habilidade')}`;
   const f = window._filtroAtv || {};
   let lista = listarAtividades();
   if (f.habilidadeId) lista = lista.filter(a => a.habilidadeId === f.habilidadeId);
@@ -272,7 +279,14 @@ function renderQuestao(q, i) {
    JOGOS
    ============================================================ */
 PAGINAS.jogos = function () {
-  if (!matrizDisponivel()) return `<div class="pagina-cabecalho"><h2>🎮 Jogos Pedagógicos</h2></div>${avisoMatrizIndisponivel()}`;
+  if (!matrizDisponivel()) return `
+    <div class="pagina-cabecalho flex-entre">
+      <div><h2>🎮 Jogos Pedagógicos</h2><p>Aprender brincando — todo jogo tem objetivo pedagógico e habilidade oficial.</p></div>
+      <div class="flex-centro">${botaoPastaMateriais()}</div>
+    </div>
+    ${avisoMatrizIndisponivel()}
+    ${secaoMateriaisCategoria('jogos', '📂 Materiais de Jogos (Drive)')}
+    ${secaoMateriaisHabilidades('📂 Materiais de Jogos por habilidade')}`;
   const lista = listarJogos();
   return `
     <div class="pagina-cabecalho flex-entre">
@@ -321,7 +335,14 @@ function verJogo(id) {
    SIMULADOS
    ============================================================ */
 PAGINAS.simulados = function () {
-  if (!matrizDisponivel()) return `<div class="pagina-cabecalho"><h2>📋 Simulados</h2></div>${avisoMatrizIndisponivel()}`;
+  if (!matrizDisponivel()) return `
+    <div class="pagina-cabecalho flex-entre">
+      <div><h2>📋 Simulados Pedagógicos</h2><p>Prepare sua turma. Simulados são ferramentas pedagógicas — não são provas oficiais do SPAECE.</p></div>
+      <div class="flex-centro">${botaoPastaMateriais()}</div>
+    </div>
+    ${avisoMatrizIndisponivel()}
+    ${secaoMateriaisCategoria('simulados', '📂 Materiais de Simulados (Drive)')}
+    ${secaoMateriaisHabilidades('📂 Materiais de Simulados por habilidade')}`;
   const lista = listarSimulados();
   return `
     <div class="pagina-cabecalho flex-entre">
