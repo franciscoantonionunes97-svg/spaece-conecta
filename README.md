@@ -94,6 +94,7 @@ Nenhuma escola fictícia é criada. Novas escolas podem ser cadastradas pelo adm
 - Enquanto não confirmada, o sistema bloqueia a criação de conteúdos vinculados.
 - **Remover habilidade individual:** na aba **Conferência**, cada linha tem o botão *Remover*.
 - **Excluir a Matriz inteira:** botão *🗑️ Excluir Matriz inteira* no cartão de status. Remove todas as habilidades e reinicia a matriz — útil quando os dados importados/colados estiverem incorretos. Exige digitar a palavra **EXCLUIR** para confirmar (proteção contra exclusão acidental).
+- **Links de materiais (Drive):** na aba **🔗 Links de materiais**, o administrador cadastra manualmente o link de material de cada habilidade (ex.: pasta/arquivo do Google Drive). Ao clicar na habilidade, o professor vê o botão **📂 Abrir material** e é direcionado ao conteúdo. Também é possível cadastrar uma **📁 Pasta geral de materiais** (Drive) com todos os jogos, simulados e atividades — ela aparece como botão nas telas de Atividades, Jogos e Simulados.
 
 ### 5.2 Dashboard do Professor
 - Cards grandes, com ícones e botões de acesso rápido (não menus pequenos).
