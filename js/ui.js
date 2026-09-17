@@ -93,6 +93,27 @@ function botaoPastaMateriais() {
   return `<a class="btn btn-verde btn-grande" href="${esc(url)}" target="_blank" rel="noopener">📁 Pasta de Materiais</a>`;
 }
 
+/* Seção de materiais por habilidade — lista as habilidades que possuem link cadastrado.
+   Exibida nas telas de Atividades, Jogos e Simulados para acesso rápido do professor. */
+function secaoMateriaisHabilidades(titulo) {
+  const habs = (typeof listarHabilidades === 'function') ? listarHabilidades() : [];
+  const comLink = habs.filter(h => h.link);
+  if (!comLink.length) return '';
+  return `
+    <div class="card mb">
+      <h3>${titulo || '📂 Materiais por habilidade'}</h3>
+      <p style="font-size:.86rem;color:var(--cinza-500)">Clique em uma habilidade para abrir o material correspondente (atividades, jogos e simulados).</p>
+      <div class="grid-materiais">
+        ${comLink.map(h => `
+          <a class="material-item" href="${esc(h.link)}" target="_blank" rel="noopener">
+            <span class="codigo">${esc(h.codigo)}</span>
+            <span class="texto">${esc(h.texto)}</span>
+            <span class="abrir">📂 Abrir material</span>
+          </a>`).join('')}
+      </div>
+    </div>`;
+}
+
 /* Opções de habilidades para <select> — SOMENTE da Matriz Oficial */
 function opcoesHabilidades(selecionado) {
   const habs = listarHabilidades();

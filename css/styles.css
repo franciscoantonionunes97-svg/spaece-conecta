@@ -305,6 +305,18 @@ body {
 }
 .card h3 { font-size: 1.05rem; color: var(--azul-900); margin-bottom: 12px; }
 
+/* ============================ MATERIAIS POR HABILIDADE ============================ */
+.grid-materiais { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+.material-item {
+  display: flex; flex-direction: column; gap: 6px; text-decoration: none;
+  background: var(--azul-50); border: 1.5px solid var(--azul-100); border-radius: var(--raio-md);
+  padding: 14px 16px; transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.material-item:hover { transform: translateY(-3px); box-shadow: var(--sombra-md); border-color: var(--verde-500); background: #fff; }
+.material-item .codigo { font-weight: 800; color: var(--azul-800); font-size: .95rem; }
+.material-item .texto { font-size: .82rem; color: var(--cinza-700); }
+.material-item .abrir { font-size: .8rem; font-weight: 700; color: var(--verde-700); margin-top: 4px; }
+
 /* KPI cards */
 .grid-kpi { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
 .kpi {

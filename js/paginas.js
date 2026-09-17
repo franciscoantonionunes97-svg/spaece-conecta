@@ -211,6 +211,7 @@ PAGINAS.atividades = function () {
       <button class="btn btn-primario" id="btn-filtrar-atv">Filtrar</button>
       <button class="btn btn-contorno" id="btn-limpar-atv">Limpar</button>
     </div>
+    ${secaoMateriaisHabilidades('📂 Materiais de Atividades por habilidade')}
     ${lista.length === 0 ? vazio('📝', 'Nenhuma atividade encontrada', 'Crie uma atividade com IA ou ajuste os filtros.') : `
     <div class="grid-cards">
       ${lista.map(a => {
@@ -280,6 +281,7 @@ PAGINAS.jogos = function () {
         <button class="btn btn-roxo btn-grande" data-ir="ia-jogo">🤖 Criar jogo com IA</button>
       </div>
     </div>
+    ${secaoMateriaisHabilidades('📂 Materiais de Jogos por habilidade')}
     ${lista.length === 0 ? vazio('🎮', 'Nenhum jogo cadastrado', 'Crie um jogo pedagógico vinculado a uma habilidade oficial.') : `
     <div class="grid-cards">
       ${lista.map(j => {
@@ -330,6 +332,7 @@ PAGINAS.simulados = function () {
     <div class="alerta alerta-aviso"><span class="ic">⚠️</span>
       <div>Todo simulado criado aqui é identificado como <strong>SIMULADO PEDAGÓGICO</strong>.
       Não reproduzimos questões oficiais protegidas por direitos autorais.</div></div>
+    ${secaoMateriaisHabilidades('📂 Materiais de Simulados por habilidade')}
     ${lista.length === 0 ? vazio('📋', 'Nenhum simulado gerado', 'Gere um simulado selecionando habilidades oficiais.') : `
     <div class="grid-cards">
       ${lista.map(s => `<div class="card">
