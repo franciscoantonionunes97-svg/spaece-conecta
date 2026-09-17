@@ -32,3 +32,4 @@ tmp/
 # Dados locais / backups
 *.bak
 backup/
+.github/workflows/

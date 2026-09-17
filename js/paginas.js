@@ -128,6 +128,7 @@ PAGINAS.matriz = function () {
             <span class="badge badge-cinza">🎮 ${nJog}</span>
             <span class="badge badge-cinza">📋 ${nSim}</span>
             <span class="badge badge-cinza">📌 ${nReg}</span>
+            ${h.link ? '<span class="badge badge-verde">🔗 material</span>' : ''}
           </div>
         </div>`;
       }).join('')}
@@ -170,7 +171,11 @@ function abrirDetalheHabilidade(habId) {
       📅 Planos: <strong>${plns.length}</strong> &nbsp;|&nbsp;
       📌 Registros: <strong>${regs.length}</strong>
     </p>
+    ${h.link ? `<div class="alerta alerta-info mt"><span class="ic">🔗</span>
+      <div><strong>Material desta habilidade disponível.</strong><br>
+      <a class="btn btn-verde btn-pequeno mt" href="${esc(h.link)}" target="_blank" rel="noopener">📂 Abrir material</a></div></div>` : ''}
   `, `<button class="btn btn-contorno" onclick="fecharModal()">Fechar</button>
+      ${h.link ? `<a class="btn btn-verde" href="${esc(h.link)}" target="_blank" rel="noopener">📂 Abrir material</a>` : ''}
       <button class="btn btn-primario" data-ir-modal="atividades">Ver atividades</button>`, true);
 }
 
@@ -190,7 +195,10 @@ PAGINAS.atividades = function () {
   return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>📝 Repositório de Atividades</h2><p>Atividades de Língua Portuguesa vinculadas às habilidades oficiais.</p></div>
-      <button class="btn btn-roxo btn-grande" data-ir="ia-atividade">🤖 Criar com IA</button>
+      <div class="flex-centro">
+        ${botaoPastaMateriais()}
+        <button class="btn btn-roxo btn-grande" data-ir="ia-atividade">🤖 Criar com IA</button>
+      </div>
     </div>
     <div class="filtros">
       <div class="campo"><label>Habilidade</label><select id="f-atv-hab">${opcoesHabilidades(f.habilidadeId)}</select></div>
@@ -267,7 +275,10 @@ PAGINAS.jogos = function () {
   return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>🎮 Jogos Pedagógicos</h2><p>Aprender brincando — todo jogo tem objetivo pedagógico e habilidade oficial.</p></div>
-      <button class="btn btn-roxo btn-grande" data-ir="ia-jogo">🤖 Criar jogo com IA</button>
+      <div class="flex-centro">
+        ${botaoPastaMateriais()}
+        <button class="btn btn-roxo btn-grande" data-ir="ia-jogo">🤖 Criar jogo com IA</button>
+      </div>
     </div>
     ${lista.length === 0 ? vazio('🎮', 'Nenhum jogo cadastrado', 'Crie um jogo pedagógico vinculado a uma habilidade oficial.') : `
     <div class="grid-cards">
@@ -311,7 +322,10 @@ PAGINAS.simulados = function () {
   return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>📋 Simulados Pedagógicos</h2><p>Prepare sua turma. Simulados são ferramentas pedagógicas — não são provas oficiais do SPAECE.</p></div>
-      <button class="btn btn-primario btn-grande" id="btn-novo-simulado">➕ Gerar Simulado</button>
+      <div class="flex-centro">
+        ${botaoPastaMateriais()}
+        <button class="btn btn-primario btn-grande" id="btn-novo-simulado">➕ Gerar Simulado</button>
+      </div>
     </div>
     <div class="alerta alerta-aviso"><span class="ic">⚠️</span>
       <div>Todo simulado criado aqui é identificado como <strong>SIMULADO PEDAGÓGICO</strong>.
@@ -925,6 +939,9 @@ PAGINAS.configuracoes = function () {
       ${pode('matriz') ? `<div class="card"><h3>📚 Matriz Oficial</h3>
         <p style="font-size:.88rem">${matrizDisponivel() ? 'Matriz cadastrada e confirmada.' : 'Matriz ainda não cadastrada.'}</p>
         <button class="btn btn-primario btn-pequeno mt" data-ir="admin-matriz">Administrar Matriz</button></div>` : ''}
+      ${pode('matriz') ? `<div class="card"><h3>📁 Pasta de Materiais</h3>
+        <p style="font-size:.88rem">${obterPastaMateriais() ? 'Pasta cadastrada e visível aos professores.' : 'Nenhuma pasta cadastrada.'}</p>
+        <button class="btn btn-primario btn-pequeno mt" data-ir="admin-matriz" data-aba="links">Configurar pasta e links</button></div>` : ''}
       ${pode('config') ? `<div class="card"><h3>👥 Usuários</h3>
         <p style="font-size:.88rem">${listarUsuarios().length} usuários cadastrados.</p>
         <button class="btn btn-primario btn-pequeno mt" data-ir="admin-usuarios">Gerenciar usuários</button></div>
@@ -977,6 +994,7 @@ PAGINAS['admin-matriz'] = function () {
       <button class="ativo" data-aba-matriz="importar">📥 Importar</button>
       <button data-aba-matriz="manual">✍️ Cadastro manual</button>
       <button data-aba-matriz="conferir">🔍 Conferência</button>
+      <button data-aba-matriz="links">🔗 Links de materiais</button>
     </div>
     <div id="aba-matriz-conteudo"></div>
   `;
@@ -1009,6 +1027,36 @@ function renderAbaMatriz(aba) {
         <div class="campo"><label>Eixo (opcional)</label><input id="man-eixo" placeholder="Ex.: Leitura"></div>
         <button class="btn btn-primario" id="btn-add-habilidade">➕ Adicionar habilidade</button>
       </div>`;
+  } else if (aba === 'links') {
+    const habs = listarHabilidades();
+    const pasta = obterPastaMateriais();
+    el.innerHTML = `
+      <div class="card mb">
+        <h3>📁 Pasta geral de materiais (Drive)</h3>
+        <p style="font-size:.88rem;color:var(--cinza-500)">Cole o link de uma pasta do Google Drive (ou outro repositório) onde ficam TODOS os jogos, simulados e atividades. Os professores verão um botão "Pasta de Materiais" nas telas de Atividades, Jogos e Simulados.</p>
+        <div class="campo"><label>Link da pasta de materiais</label>
+          <input id="cfg-pasta-materiais" value="${esc(pasta)}" placeholder="https://drive.google.com/drive/folders/..."></div>
+        <div class="flex-centro">
+          <button class="btn btn-primario" id="btn-salvar-pasta-materiais">💾 Salvar pasta</button>
+          ${pasta ? `<a class="btn btn-claro" href="${esc(pasta)}" target="_blank" rel="noopener">🔗 Abrir pasta</a>` : ''}
+        </div>
+      </div>
+      <div class="alerta alerta-info"><span class="ic">🔗</span>
+        <div>Cadastre abaixo o link de material de cada habilidade. Ao clicar na habilidade, o professor será direcionado ao material correspondente.</div></div>
+      ${habs.length === 0 ? vazio('🔍','Nenhuma habilidade cadastrada','Importe ou cadastre a Matriz Oficial antes de vincular links.') : `
+      <div class="tabela-wrap"><table class="tabela">
+        <thead><tr><th>Código</th><th>Texto oficial</th><th>Link do material</th><th>Ações</th></tr></thead>
+        <tbody>${habs.map(h => `<tr>
+          <td><strong>${esc(h.codigo)}</strong></td>
+          <td style="max-width:320px">${esc(h.texto)}</td>
+          <td><input class="input-link-hab" data-hab-link="${h.id}" value="${esc(h.link||'')}" placeholder="https://drive.google.com/..." style="min-width:240px"></td>
+          <td>
+            <button class="btn btn-primario btn-pequeno" data-salvar-link="${h.id}">💾 Salvar</button>
+            ${h.link ? `<a class="btn btn-claro btn-pequeno" href="${esc(h.link)}" target="_blank" rel="noopener">🔗 Abrir</a>` : ''}
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>`}
+    `;
   } else {
     const habs = listarHabilidades();
     el.innerHTML = habs.length === 0 ? vazio('🔍','Nenhuma habilidade cadastrada','Importe ou cadastre a Matriz Oficial.') : `

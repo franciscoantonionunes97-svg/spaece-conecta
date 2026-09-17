@@ -25,6 +25,11 @@ const USUARIOS_INICIAIS = [
     id: 'usr-djanaine', nome: 'DJANAINE',
     email: 'djanaine@ararenda.ce.gov.br', perfil: 'tecnico',
     escolaId: null, ativo: true, senhaHash: null, precisaDefinirSenha: true
+  },
+  {
+    id: 'usr-camila', nome: 'FRANCISCA CAMILA BRITO',
+    email: 'francisca.brito@ararenda.ce.gov.br', perfil: 'professor',
+    escolaId: 'esc-21dez', ativo: true, senhaHash: null, precisaDefinirSenha: true
   }
 ];
 
@@ -43,8 +48,10 @@ function dbInicial() {
       documentoOrigem: '',
       responsavel: '',
       dataImportacao: null,
-      habilidades: [] // { id, codigo, texto, eixo, status }
+      habilidades: [] // { id, codigo, texto, eixo, status, link }
     },
+    // Pasta geral de materiais (ex.: Google Drive) compartilhada com os professores
+    pastaMateriais: '',
     atividades: [],   // repositório
     questoes: [],     // banco de questões
     jogos: [],
@@ -70,6 +77,25 @@ function carregar() {
       const base = dbInicial();
       for (const k of Object.keys(base)) {
         if (DB[k] === undefined) DB[k] = base[k];
+      }
+      // Migração: garantir que usuários iniciais (ex.: novos professores) existam
+      if (Array.isArray(DB.usuarios)) {
+        let mudou = false;
+        for (const u of USUARIOS_INICIAIS) {
+          if (!DB.usuarios.some(x => x.email === u.email)) {
+            DB.usuarios.push({ ...u });
+            mudou = true;
+          }
+        }
+        if (mudou) salvar();
+      }
+      // Migração: garantir campo 'link' nas habilidades já cadastradas
+      if (DB.matriz && Array.isArray(DB.matriz.habilidades)) {
+        let mudouLink = false;
+        for (const h of DB.matriz.habilidades) {
+          if (h.link === undefined) { h.link = ''; mudouLink = true; }
+        }
+        if (mudouLink) salvar();
       }
     } else {
       DB = dbInicial();
@@ -165,7 +191,8 @@ function importarMatriz(meta, habilidades) {
       codigo: String(h.codigo).trim(),
       texto: String(h.texto).trim(),
       eixo: h.eixo || '',
-      status: 'ativa'
+      status: 'ativa',
+      link: h.link || ''
     }))
   };
   salvar();
@@ -182,7 +209,7 @@ function confirmarMatriz() {
 
 function adicionarHabilidade(h) {
   const db = getDB();
-  const nova = { id: uid('hab'), codigo: h.codigo.trim(), texto: h.texto.trim(), eixo: h.eixo || '', status: 'ativa' };
+  const nova = { id: uid('hab'), codigo: h.codigo.trim(), texto: h.texto.trim(), eixo: h.eixo || '', status: 'ativa', link: h.link || '' };
   db.matriz.habilidades.push(nova);
   db.matriz.cadastrada = true;
   salvar(); registrarLog('Habilidade cadastrada manualmente', nova.codigo);
@@ -192,6 +219,28 @@ function removerHabilidade(id) {
   const db = getDB();
   db.matriz.habilidades = db.matriz.habilidades.filter(h => h.id !== id);
   salvar();
+}
+
+/* Vincula (ou remove) um link de material a uma habilidade da Matriz Oficial.
+   O link é cadastrado MANUALMENTE pelo administrador (ex.: pasta/arquivo do Google Drive). */
+function atualizarLinkHabilidade(id, link) {
+  const db = getDB();
+  const h = db.matriz.habilidades.find(x => x.id === id);
+  if (!h) return null;
+  h.link = (link || '').trim();
+  salvar();
+  registrarLog('Link de material atualizado', h.codigo + (h.link ? ' \u2192 ' + h.link : ' (removido)'));
+  return h;
+}
+
+/* Pasta geral de materiais (ex.: Google Drive) compartilhada com os professores. */
+function obterPastaMateriais() { return getDB().pastaMateriais || ''; }
+function definirPastaMateriais(url) {
+  const db = getDB();
+  db.pastaMateriais = (url || '').trim();
+  salvar();
+  registrarLog('Pasta de materiais atualizada', db.pastaMateriais || '(removida)');
+  return db.pastaMateriais;
 }
 
 /* Exclui a Matriz Oficial inteira, voltando ao estado inicial (vazia).

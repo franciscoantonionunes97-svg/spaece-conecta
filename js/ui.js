@@ -86,6 +86,13 @@ function avisoIA() {
     A IA é um assistente pedagógico e não substitui a decisão do professor.</div>`;
 }
 
+/* Botão para a pasta geral de materiais (Drive) — aparece quando o administrador cadastra o link. */
+function botaoPastaMateriais() {
+  const url = (typeof obterPastaMateriais === 'function') ? obterPastaMateriais() : '';
+  if (!url) return '';
+  return `<a class="btn btn-verde btn-grande" href="${esc(url)}" target="_blank" rel="noopener">📁 Pasta de Materiais</a>`;
+}
+
 /* Opções de habilidades para <select> — SOMENTE da Matriz Oficial */
 function opcoesHabilidades(selecionado) {
   const habs = listarHabilidades();

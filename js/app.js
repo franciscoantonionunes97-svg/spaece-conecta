@@ -79,7 +79,11 @@ function renderPagina(id, opts) {
   main.focus();
 
   // Hooks pós-renderização
-  if (id === 'admin-matriz') renderAbaMatriz('importar');
+  if (id === 'admin-matriz') {
+    const aba = opts.aba || 'importar';
+    renderAbaMatriz(aba);
+    document.querySelectorAll('[data-aba-matriz]').forEach(b => b.classList.toggle('ativo', b.dataset.abaMatriz === aba));
+  }
 }
 
 function abrirSidebar() {
@@ -237,7 +241,7 @@ function confirmarLoginGoogle() {
    EVENTOS GLOBAIS (delegação)
    ============================================================ */
 document.addEventListener('click', function (ev) {
-  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal]');
+  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal],[data-salvar-link]');
 
   // Navegação
   const nav = ev.target.closest('[data-ir]');
@@ -246,6 +250,7 @@ document.addEventListener('click', function (ev) {
     const id = nav.dataset.ir;
     const opts = {};
     if (nav.dataset.escola) opts.escolaId = nav.dataset.escola;
+    if (nav.dataset.aba) opts.aba = nav.dataset.aba;
     renderPagina(id, opts);
     return;
   }
@@ -279,6 +284,16 @@ document.addEventListener('click', function (ev) {
     document.querySelectorAll('[data-aba-matriz]').forEach(b => b.classList.remove('ativo'));
     alvo.classList.add('ativo');
     renderAbaMatriz(alvo.dataset.abaMatriz);
+    return;
+  }
+  if (alvo.dataset.salvarLink) {
+    const id = alvo.dataset.salvarLink;
+    const inp = document.querySelector(`[data-hab-link="${id}"]`);
+    const link = inp ? inp.value.trim() : '';
+    if (link && !/^https?:\/\//i.test(link)) { toast('O link deve começar com http:// ou https://', 'erro'); return; }
+    atualizarLinkHabilidade(id, link);
+    toast(link ? 'Link do material salvo.' : 'Link removido.');
+    renderAbaMatriz('links');
     return;
   }
   if (alvo.dataset.irModal) { fecharModal(); renderPagina(alvo.dataset.irModal); return; }
@@ -333,6 +348,14 @@ document.addEventListener('click', function (ev) {
     case 'btn-confirmar-excluir-matriz': confirmarExcluirMatriz(); break;
     case 'btn-importar-matriz': importarMatrizForm(); break;
     case 'btn-add-habilidade': adicionarHabilidadeForm(); break;
+    case 'btn-salvar-pasta-materiais': {
+      const url = (document.getElementById('cfg-pasta-materiais').value || '').trim();
+      if (url && !/^https?:\/\//i.test(url)) { toast('O link deve começar com http:// ou https://', 'erro'); break; }
+      definirPastaMateriais(url);
+      toast(url ? 'Pasta de materiais salva.' : 'Pasta removida.');
+      renderAbaMatriz('links');
+      break;
+    }
     case 'btn-novo-usuario': modalNovoUsuario(); break;
     case 'btn-nova-escola': modalNovaEscola(); break;
     case 'btn-gerar-relatorio': gerarRelatorio(); break;
