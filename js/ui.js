@@ -93,6 +93,48 @@ function botaoPastaMateriais() {
   return `<a class="btn btn-verde btn-grande" href="${esc(url)}" target="_blank" rel="noopener">📁 Pasta de Materiais</a>`;
 }
 
+/* Quem pode gerenciar materiais (adicionar/remover) direto nas telas. */
+function podeGerenciarMateriais() {
+  const p = (typeof perfilAtual === 'function') ? perfilAtual() : null;
+  return p === 'admin' || p === 'tecnico';
+}
+
+/* Botão "Adicionar material" exibido nas telas de Atividades/Jogos/Simulados
+   para administrador/técnico. Abre o modal já com a categoria da tela. */
+function botaoAdicionarMaterial(categoria) {
+  if (!podeGerenciarMateriais()) return '';
+  return `<button class="btn btn-primario btn-grande" data-add-material-cat="${esc(categoria)}">➕ Adicionar material</button>`;
+}
+
+/* Modal para adicionar um material (link ou PDF) direto na tela atual. */
+function modalAdicionarMaterial(categoria) {
+  const habs = (typeof listarHabilidades === 'function') ? listarHabilidades() : [];
+  const cat = (typeof CATEGORIAS_MATERIAL !== 'undefined')
+    ? (CATEGORIAS_MATERIAL.find(c => c.id === categoria) || CATEGORIAS_MATERIAL[0]) : { rotulo: 'Atividades', icone: '📝' };
+  abrirModal('➕ Adicionar material — ' + cat.icone + ' ' + cat.rotulo, `
+    <p style="font-size:.88rem;color:var(--cinza-500)">O material ficará disponível para os professores na tela de <strong>${esc(cat.rotulo)}</strong>.</p>
+    <div class="campo"><label>Título do material *</label>
+      <input id="mam-titulo" placeholder="Ex.: Jogo de interpretação — Crônica"></div>
+    <div class="campo"><label>Tipo de material *</label>
+      <select id="mam-tipo">
+        <option value="link">🔗 Link (Drive / site)</option>
+        <option value="pdf">📄 Arquivo PDF (enviar do computador)</option>
+      </select></div>
+    <div class="campo" id="mam-campo-link"><label>Link do material (Drive) *</label>
+      <input id="mam-link" placeholder="https://drive.google.com/..."></div>
+    <div class="campo" id="mam-campo-pdf" style="display:none"><label>Arquivo PDF *</label>
+      <input type="file" id="mam-arquivo" accept="application/pdf,.pdf">
+      <small style="color:var(--cinza-500);font-size:.8rem">Tamanho recomendado: até 20 MB.</small></div>
+    <div class="campo"><label>Habilidade (opcional)</label>
+      <select id="mam-habilidade"><option value="">— Nenhuma —</option>${habs.map(h => `<option value="${h.id}">${esc(h.codigo)} — ${esc(h.texto.slice(0,50))}</option>`).join('')}</select></div>
+  `, `
+    <button class="btn btn-contorno" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-primario" id="btn-mam-salvar">➕ Adicionar material</button>
+  `);
+  // Guarda a categoria escolhida para o handler de salvar.
+  window._mamCategoria = categoria;
+}
+
 /* Seção de materiais por habilidade — lista as habilidades que possuem link cadastrado.
    Exibida nas telas de Atividades, Jogos e Simulados para acesso rápido do professor. */
 function secaoMateriaisHabilidades(titulo) {

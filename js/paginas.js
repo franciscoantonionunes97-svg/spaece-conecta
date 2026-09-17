@@ -186,7 +186,7 @@ PAGINAS.atividades = function () {
   if (!matrizDisponivel()) return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>📝 Repositório de Atividades</h2><p>Atividades de Língua Portuguesa vinculadas às habilidades oficiais.</p></div>
-      <div class="flex-centro">${botaoPastaMateriais()}</div>
+      <div class="flex-centro">${botaoPastaMateriais()}${botaoAdicionarMaterial('atividades')}</div>
     </div>
     ${avisoMatrizIndisponivel()}
     ${secaoMateriaisCategoria('atividades', '📂 Materiais de Atividades (Drive)')}
@@ -204,6 +204,7 @@ PAGINAS.atividades = function () {
       <div><h2>📝 Repositório de Atividades</h2><p>Atividades de Língua Portuguesa vinculadas às habilidades oficiais.</p></div>
       <div class="flex-centro">
         ${botaoPastaMateriais()}
+        ${botaoAdicionarMaterial('atividades')}
         <button class="btn btn-roxo btn-grande" data-ir="ia-atividade">🤖 Criar com IA</button>
       </div>
     </div>
@@ -282,7 +283,7 @@ PAGINAS.jogos = function () {
   if (!matrizDisponivel()) return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>🎮 Jogos Pedagógicos</h2><p>Aprender brincando — todo jogo tem objetivo pedagógico e habilidade oficial.</p></div>
-      <div class="flex-centro">${botaoPastaMateriais()}</div>
+      <div class="flex-centro">${botaoPastaMateriais()}${botaoAdicionarMaterial('jogos')}</div>
     </div>
     ${avisoMatrizIndisponivel()}
     ${secaoMateriaisCategoria('jogos', '📂 Materiais de Jogos (Drive)')}
@@ -293,6 +294,7 @@ PAGINAS.jogos = function () {
       <div><h2>🎮 Jogos Pedagógicos</h2><p>Aprender brincando — todo jogo tem objetivo pedagógico e habilidade oficial.</p></div>
       <div class="flex-centro">
         ${botaoPastaMateriais()}
+        ${botaoAdicionarMaterial('jogos')}
         <button class="btn btn-roxo btn-grande" data-ir="ia-jogo">🤖 Criar jogo com IA</button>
       </div>
     </div>
@@ -338,7 +340,7 @@ PAGINAS.simulados = function () {
   if (!matrizDisponivel()) return `
     <div class="pagina-cabecalho flex-entre">
       <div><h2>📋 Simulados Pedagógicos</h2><p>Prepare sua turma. Simulados são ferramentas pedagógicas — não são provas oficiais do SPAECE.</p></div>
-      <div class="flex-centro">${botaoPastaMateriais()}</div>
+      <div class="flex-centro">${botaoPastaMateriais()}${botaoAdicionarMaterial('simulados')}</div>
     </div>
     ${avisoMatrizIndisponivel()}
     ${secaoMateriaisCategoria('simulados', '📂 Materiais de Simulados (Drive)')}
@@ -349,6 +351,7 @@ PAGINAS.simulados = function () {
       <div><h2>📋 Simulados Pedagógicos</h2><p>Prepare sua turma. Simulados são ferramentas pedagógicas — não são provas oficiais do SPAECE.</p></div>
       <div class="flex-centro">
         ${botaoPastaMateriais()}
+        ${botaoAdicionarMaterial('simulados')}
         <button class="btn btn-primario btn-grande" id="btn-novo-simulado">➕ Gerar Simulado</button>
       </div>
     </div>

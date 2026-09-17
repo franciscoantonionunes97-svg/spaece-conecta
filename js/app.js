@@ -241,7 +241,7 @@ function confirmarLoginGoogle() {
    EVENTOS GLOBAIS (delegação)
    ============================================================ */
 document.addEventListener('click', function (ev) {
-  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal],[data-salvar-link],[data-del-material],[data-abrir-pdf]');
+  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal],[data-salvar-link],[data-del-material],[data-abrir-pdf],[data-add-material-cat]');
 
   // Navegação
   const nav = ev.target.closest('[data-ir]');
@@ -307,6 +307,10 @@ document.addEventListener('click', function (ev) {
   if (alvo.dataset.abrirPdf) {
     ev.preventDefault();
     abrirPdfMaterial(alvo.dataset.abrirPdf);
+    return;
+  }
+  if (alvo.dataset.addMaterialCat) {
+    modalAdicionarMaterial(alvo.dataset.addMaterialCat);
     return;
   }
   if (alvo.dataset.irModal) { fecharModal(); renderPagina(alvo.dataset.irModal); return; }
@@ -403,6 +407,44 @@ document.addEventListener('click', function (ev) {
       adicionarMaterial({ titulo, tipo: 'link', link, categoria, habilidadeId });
       toast('Material cadastrado em ' + rotuloCategoria(categoria) + '!');
       renderAbaMatriz('links');
+      break;
+    }
+    case 'btn-mam-salvar': {
+      const categoria = window._mamCategoria || 'atividades';
+      const titulo = (document.getElementById('mam-titulo').value || '').trim();
+      const tipo = document.getElementById('mam-tipo').value;
+      const habilidadeId = document.getElementById('mam-habilidade').value || null;
+      if (!titulo) { toast('Informe o título do material.', 'erro'); break; }
+      if (tipo === 'pdf') {
+        const inp = document.getElementById('mam-arquivo');
+        const file = inp && inp.files && inp.files[0];
+        if (!file) { toast('Selecione um arquivo PDF.', 'erro'); break; }
+        const ehPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+        if (!ehPdf) { toast('O arquivo deve ser um PDF.', 'erro'); break; }
+        if (file.size > 25 * 1024 * 1024) { toast('O arquivo é muito grande (máx. 25 MB).', 'erro'); break; }
+        const btn = document.getElementById('btn-mam-salvar');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Salvando PDF…'; }
+        salvarArquivo(file).then(arquivoId => {
+          adicionarMaterial({
+            titulo, tipo: 'pdf', categoria, habilidadeId,
+            arquivoId, arquivoNome: file.name, arquivoTipo: file.type || 'application/pdf', arquivoTamanho: file.size
+          });
+          fecharModal();
+          toast('PDF adicionado em ' + rotuloCategoria(categoria) + '!');
+          renderPagina(categoria);
+        }).catch(err => {
+          console.error(err);
+          toast('Não foi possível salvar o PDF.', 'erro');
+          if (btn) { btn.disabled = false; btn.textContent = '➕ Adicionar material'; }
+        });
+        break;
+      }
+      const link = (document.getElementById('mam-link').value || '').trim();
+      if (!link || !/^https?:\/\//i.test(link)) { toast('Informe um link válido (http:// ou https://).', 'erro'); break; }
+      adicionarMaterial({ titulo, tipo: 'link', link, categoria, habilidadeId });
+      fecharModal();
+      toast('Material adicionado em ' + rotuloCategoria(categoria) + '!');
+      renderPagina(categoria);
       break;
     }
     case 'btn-novo-usuario': modalNovoUsuario(); break;
@@ -661,10 +703,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Alterna entre campo de LINK e campo de ARQUIVO PDF no cadastro de materiais
   document.addEventListener('change', function (ev) {
-    if (ev.target && ev.target.id === 'mat-tipo') {
+    if (!ev.target) return;
+    if (ev.target.id === 'mat-tipo' || ev.target.id === 'mam-tipo') {
+      const prefixo = ev.target.id === 'mat-tipo' ? 'mat' : 'mam';
       const ehPdf = ev.target.value === 'pdf';
-      const campoLink = document.getElementById('mat-campo-link');
-      const campoPdf = document.getElementById('mat-campo-pdf');
+      const campoLink = document.getElementById(prefixo + '-campo-link');
+      const campoPdf = document.getElementById(prefixo + '-campo-pdf');
       if (campoLink) campoLink.style.display = ehPdf ? 'none' : '';
       if (campoPdf) campoPdf.style.display = ehPdf ? '' : 'none';
     }
