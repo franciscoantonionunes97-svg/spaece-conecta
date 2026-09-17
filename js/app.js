@@ -241,7 +241,7 @@ function confirmarLoginGoogle() {
    EVENTOS GLOBAIS (delegação)
    ============================================================ */
 document.addEventListener('click', function (ev) {
-  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal],[data-salvar-link]');
+  const alvo = ev.target.closest('[data-ir],[data-hab],[data-ver-atv],[data-ver-jogo],[data-ver-sim],[data-ver-plano],[data-res-sim],[data-reg-atv],[data-reg-jogo],[data-imprimir-atv],[data-del-hab],[data-reset-senha],[data-aba-matriz],[data-ir-modal],[data-salvar-link],[data-del-material]');
 
   // Navegação
   const nav = ev.target.closest('[data-ir]');
@@ -294,6 +294,14 @@ document.addEventListener('click', function (ev) {
     atualizarLinkHabilidade(id, link);
     toast(link ? 'Link do material salvo.' : 'Link removido.');
     renderAbaMatriz('links');
+    return;
+  }
+  if (alvo.dataset.delMaterial) {
+    if (confirm('Remover este material? Esta ação não pode ser desfeita.')) {
+      removerMaterial(alvo.dataset.delMaterial);
+      toast('Material removido.');
+      renderAbaMatriz('links');
+    }
     return;
   }
   if (alvo.dataset.irModal) { fecharModal(); renderPagina(alvo.dataset.irModal); return; }
@@ -353,6 +361,18 @@ document.addEventListener('click', function (ev) {
       if (url && !/^https?:\/\//i.test(url)) { toast('O link deve começar com http:// ou https://', 'erro'); break; }
       definirPastaMateriais(url);
       toast(url ? 'Pasta de materiais salva.' : 'Pasta removida.');
+      renderAbaMatriz('links');
+      break;
+    }
+    case 'btn-add-material': {
+      const titulo = (document.getElementById('mat-titulo').value || '').trim();
+      const link = (document.getElementById('mat-link').value || '').trim();
+      const categoria = document.getElementById('mat-categoria').value;
+      const habilidadeId = document.getElementById('mat-habilidade').value || null;
+      if (!titulo) { toast('Informe o título do material.', 'erro'); break; }
+      if (!link || !/^https?:\/\//i.test(link)) { toast('Informe um link válido (http:// ou https://).', 'erro'); break; }
+      adicionarMaterial({ titulo, link, categoria, habilidadeId });
+      toast('Material cadastrado em ' + rotuloCategoria(categoria) + '!');
       renderAbaMatriz('links');
       break;
     }

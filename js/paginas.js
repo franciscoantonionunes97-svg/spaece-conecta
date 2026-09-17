@@ -211,6 +211,7 @@ PAGINAS.atividades = function () {
       <button class="btn btn-primario" id="btn-filtrar-atv">Filtrar</button>
       <button class="btn btn-contorno" id="btn-limpar-atv">Limpar</button>
     </div>
+    ${secaoMateriaisCategoria('atividades', '📂 Materiais de Atividades (Drive)')}
     ${secaoMateriaisHabilidades('📂 Materiais de Atividades por habilidade')}
     ${lista.length === 0 ? vazio('📝', 'Nenhuma atividade encontrada', 'Crie uma atividade com IA ou ajuste os filtros.') : `
     <div class="grid-cards">
@@ -281,6 +282,7 @@ PAGINAS.jogos = function () {
         <button class="btn btn-roxo btn-grande" data-ir="ia-jogo">🤖 Criar jogo com IA</button>
       </div>
     </div>
+    ${secaoMateriaisCategoria('jogos', '📂 Materiais de Jogos (Drive)')}
     ${secaoMateriaisHabilidades('📂 Materiais de Jogos por habilidade')}
     ${lista.length === 0 ? vazio('🎮', 'Nenhum jogo cadastrado', 'Crie um jogo pedagógico vinculado a uma habilidade oficial.') : `
     <div class="grid-cards">
@@ -332,6 +334,7 @@ PAGINAS.simulados = function () {
     <div class="alerta alerta-aviso"><span class="ic">⚠️</span>
       <div>Todo simulado criado aqui é identificado como <strong>SIMULADO PEDAGÓGICO</strong>.
       Não reproduzimos questões oficiais protegidas por direitos autorais.</div></div>
+    ${secaoMateriaisCategoria('simulados', '📂 Materiais de Simulados (Drive)')}
     ${secaoMateriaisHabilidades('📂 Materiais de Simulados por habilidade')}
     ${lista.length === 0 ? vazio('📋', 'Nenhum simulado gerado', 'Gere um simulado selecionando habilidades oficiais.') : `
     <div class="grid-cards">
@@ -1033,6 +1036,7 @@ function renderAbaMatriz(aba) {
   } else if (aba === 'links') {
     const habs = listarHabilidades();
     const pasta = obterPastaMateriais();
+    const mats = listarMateriais();
     el.innerHTML = `
       <div class="card mb">
         <h3>📁 Pasta geral de materiais (Drive)</h3>
@@ -1044,8 +1048,46 @@ function renderAbaMatriz(aba) {
           ${pasta ? `<a class="btn btn-claro" href="${esc(pasta)}" target="_blank" rel="noopener">🔗 Abrir pasta</a>` : ''}
         </div>
       </div>
+
+      <div class="card mb">
+        <h3>➕ Cadastrar material (link do Drive)</h3>
+        <p style="font-size:.88rem;color:var(--cinza-500)">Escolha para onde o material vai: <strong>Atividades</strong>, <strong>Jogos</strong> ou <strong>Simulados</strong>. Ele aparecerá na tela escolhida para os professores.</p>
+        <div class="campo"><label>Título do material *</label>
+          <input id="mat-titulo" placeholder="Ex.: Jogo de interpretação — Crônica"></div>
+        <div class="campo"><label>Link do material (Drive) *</label>
+          <input id="mat-link" placeholder="https://drive.google.com/..."></div>
+        <div class="campo-linha">
+          <div class="campo"><label>Onde exibir *</label>
+            <select id="mat-categoria">
+              ${CATEGORIAS_MATERIAL.map(c => `<option value="${c.id}">${c.icone} ${c.rotulo}</option>`).join('')}
+            </select></div>
+          <div class="campo"><label>Habilidade (opcional)</label>
+            <select id="mat-habilidade"><option value="">— Nenhuma —</option>${habs.map(h => `<option value="${h.id}">${esc(h.codigo)} — ${esc(h.texto.slice(0,50))}</option>`).join('')}</select></div>
+        </div>
+        <button class="btn btn-primario btn-grande" id="btn-add-material">➕ Cadastrar material</button>
+      </div>
+
+      <div class="card mb">
+        <h3>📂 Materiais cadastrados (${mats.length})</h3>
+        ${mats.length === 0 ? '<p style="font-size:.88rem;color:var(--cinza-500)">Nenhum material cadastrado ainda.</p>' : `
+        <div class="tabela-wrap"><table class="tabela">
+          <thead><tr><th>Título</th><th>Onde exibe</th><th>Habilidade</th><th>Link</th><th>Ações</th></tr></thead>
+          <tbody>${mats.map(m => {
+            const h = m.habilidadeId ? obterHabilidade(m.habilidadeId) : null;
+            const cat = CATEGORIAS_MATERIAL.find(c => c.id === m.categoria) || CATEGORIAS_MATERIAL[0];
+            return `<tr>
+              <td><strong>${esc(m.titulo || '—')}</strong></td>
+              <td><span class="badge badge-azul">${cat.icone} ${esc(cat.rotulo)}</span></td>
+              <td>${h ? esc(h.codigo) : '—'}</td>
+              <td><a href="${esc(m.link)}" target="_blank" rel="noopener">🔗 Abrir</a></td>
+              <td><button class="btn btn-perigo btn-pequeno" data-del-material="${m.id}">🗑️ Remover</button></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>`}
+      </div>
+
       <div class="alerta alerta-info"><span class="ic">🔗</span>
-        <div>Cadastre abaixo o link de material de cada habilidade. Ao clicar na habilidade, o professor será direcionado ao material correspondente.</div></div>
+        <div>Você também pode vincular um link direto a cada habilidade da Matriz. Ao clicar na habilidade, o professor será direcionado ao material correspondente.</div></div>
       ${habs.length === 0 ? vazio('🔍','Nenhuma habilidade cadastrada','Importe ou cadastre a Matriz Oficial antes de vincular links.') : `
       <div class="tabela-wrap"><table class="tabela">
         <thead><tr><th>Código</th><th>Texto oficial</th><th>Link do material</th><th>Ações</th></tr></thead>

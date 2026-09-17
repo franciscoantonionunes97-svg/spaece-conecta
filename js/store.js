@@ -52,6 +52,9 @@ function dbInicial() {
     },
     // Pasta geral de materiais (ex.: Google Drive) compartilhada com os professores
     pastaMateriais: '',
+    // Materiais avulsos (links do Drive) com categoria escolhida pelo administrador
+    // { id, titulo, link, categoria: 'atividades'|'jogos'|'simulados', habilidadeId, data }
+    materiais: [],
     atividades: [],   // repositório
     questoes: [],     // banco de questões
     jogos: [],
@@ -241,6 +244,58 @@ function definirPastaMateriais(url) {
   salvar();
   registrarLog('Pasta de materiais atualizada', db.pastaMateriais || '(removida)');
   return db.pastaMateriais;
+}
+
+/* ---------- Materiais (links do Drive) com categoria ----------
+   O administrador escolhe se o material vai para Atividades, Jogos ou Simulados. */
+const CATEGORIAS_MATERIAL = [
+  { id: 'atividades', rotulo: 'Atividades', icone: '📝' },
+  { id: 'jogos', rotulo: 'Jogos', icone: '🎮' },
+  { id: 'simulados', rotulo: 'Simulados', icone: '📋' }
+];
+function rotuloCategoria(cat) {
+  const c = CATEGORIAS_MATERIAL.find(x => x.id === cat);
+  return c ? c.rotulo : 'Atividades';
+}
+function listarMateriais(categoria) {
+  const arr = getDB().materiais.slice();
+  if (categoria) return arr.filter(m => m.categoria === categoria);
+  return arr;
+}
+function obterMaterial(id) { return getDB().materiais.find(m => m.id === id) || null; }
+function adicionarMaterial(dados) {
+  const db = getDB();
+  const m = {
+    id: uid('mat'),
+    titulo: (dados.titulo || '').trim(),
+    link: (dados.link || '').trim(),
+    categoria: dados.categoria || 'atividades',
+    habilidadeId: dados.habilidadeId || null,
+    data: agoraISO()
+  };
+  db.materiais.push(m);
+  salvar();
+  registrarLog('Material cadastrado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
+  return m;
+}
+function atualizarMaterial(id, dados) {
+  const db = getDB();
+  const m = db.materiais.find(x => x.id === id);
+  if (!m) return null;
+  if (dados.titulo !== undefined) m.titulo = (dados.titulo || '').trim();
+  if (dados.link !== undefined) m.link = (dados.link || '').trim();
+  if (dados.categoria !== undefined) m.categoria = dados.categoria;
+  if (dados.habilidadeId !== undefined) m.habilidadeId = dados.habilidadeId || null;
+  salvar();
+  registrarLog('Material atualizado', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
+  return m;
+}
+function removerMaterial(id) {
+  const db = getDB();
+  const m = db.materiais.find(x => x.id === id);
+  db.materiais = db.materiais.filter(x => x.id !== id);
+  salvar();
+  if (m) registrarLog('Material removido', rotuloCategoria(m.categoria) + ' \u2014 ' + (m.titulo || m.link));
 }
 
 /* Exclui a Matriz Oficial inteira, voltando ao estado inicial (vazia).

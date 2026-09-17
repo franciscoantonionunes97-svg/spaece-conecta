@@ -114,6 +114,29 @@ function secaoMateriaisHabilidades(titulo) {
     </div>`;
 }
 
+/* Seção de materiais cadastrados por categoria (Atividades, Jogos ou Simulados).
+   Mostra os links do Drive que o administrador direcionou para esta tela. */
+function secaoMateriaisCategoria(categoria, titulo) {
+  const mats = (typeof listarMateriais === 'function') ? listarMateriais(categoria) : [];
+  if (!mats.length) return '';
+  return `
+    <div class="card mb">
+      <h3>${titulo || '📂 Materiais disponíveis'}</h3>
+      <p style="font-size:.86rem;color:var(--cinza-500)">Materiais cadastrados pela Secretaria para esta seção. Clique para abrir.</p>
+      <div class="grid-materiais">
+        ${mats.map(m => {
+          const h = m.habilidadeId && typeof obterHabilidade === 'function' ? obterHabilidade(m.habilidadeId) : null;
+          return `
+          <a class="material-item" href="${esc(m.link)}" target="_blank" rel="noopener">
+            <span class="codigo">${esc(m.titulo || 'Material')}</span>
+            ${h ? `<span class="texto">${esc(h.codigo)} — ${esc(h.texto)}</span>` : ''}
+            <span class="abrir">📂 Abrir material</span>
+          </a>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 /* Opções de habilidades para <select> — SOMENTE da Matriz Oficial */
 function opcoesHabilidades(selecionado) {
   const habs = listarHabilidades();
